@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Home</title>
+    <title>Login</title>
 </head>
 <body>
     <h1>{{ . }}</h1>
-
-    <form action="/Login" method="GET">
-        <input type="submit" value="Login">
-    </form>
-    
-    <form action="/Register" method="get">
-        <input type="submit" value="Register">
+    <form action="/Login" method="POST">
+        <label>Acconut</label><input name="account" type="text">
+        <label>Password</label><input name="password" type="password">
+        <input type="submit">
     </form>
 </body>
 </html>
