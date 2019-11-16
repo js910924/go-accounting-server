@@ -79,11 +79,13 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	values := strings.Split(c.Value, " ")
 	item := struct {
+		Name     string
 		Account  string
 		Password string
 	}{
-		Account:  values[0],
-		Password: values[1],
+		Name:     values[0],
+		Account:  values[1],
+		Password: values[2],
 	}
 
 	middleware.RenderTemplate(a.Templates, w, "user", item)
@@ -104,7 +106,7 @@ func AddUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	c := &http.Cookie{
 		Name:  "user",
-		Value: account + " " + password,
+		Value: name + " " + account + " " + password,
 	}
 
 	http.SetCookie(w, c)
@@ -116,7 +118,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	middleware.RenderTemplate(a.Templates, w, "register", "Registe Page")
+	middleware.RenderTemplate(a.Templates, w, "register", "Register Page")
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +148,7 @@ func checkLogin(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[Warning] No Such User!!!")
 		c := &http.Cookie{
 			Name:  "user",
-			Value: account + " " + password,
+			Value: user.Name + " " + user.Account + " " + user.Password,
 		}
 
 		http.SetCookie(w, c)
