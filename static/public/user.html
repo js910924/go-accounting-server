@@ -8,16 +8,35 @@
     <title>User</title>
 </head>
 <body>
-    <h1 class="text-center">User Page</h1>
-    <div class="card">
-        <div class="card-header text-center">
-            User
+    <div class="container">
+        <h1 class="text-center">User Page</h1>
+        <div class="card">
+            <div class="card-header text-center">
+                User
+            </div>
+            <div class="card-body text-center">
+                <h5 class="card-title">{{ .Name }}</h5>
+                <p class="card-text">Account: {{ .Account }}</p>
+                <p class="card-text">Password: {{ .Password }}</p>
+                <a href="#" id="btn" class="btn btn-danger" onclick="ClickHandler()">Fuck yourself</a>
+            </div>
         </div>
-        <div class="card-body text-center">
-            <h5 class="card-title">{{ .Name }}</h5>
-            <p class="card-text">Account: {{ .Account }}</p>
-            <p class="card-text">Password: {{ .Password }}</p>
-            <a href="#" id="btn" class="btn btn-danger" onclick="ClickHandler()">Fuck yourself</a>
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <form action="/User/AllData" method="GET">
+                    <button class="btn btn-warning">Show All</button>
+                </form>
+            </div>
+            <div class="col-auto">
+                <form action="/User/Outlay" method="GET">
+                    <button class="btn btn-success">OutLay</button>
+                </form>
+            </div>
+            <div class="col-auto">
+                <form action="/User/Income" method="GET">
+                    <button class="btn btn-primary">Income</button>
+                </form>
+            </div>
         </div>
     </div>
     <script>
