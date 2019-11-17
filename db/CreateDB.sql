@@ -15,25 +15,10 @@ Create Table if not exists OutlayType (
     TypeName varchar(20) not null unique
 );
 
-Insert Into OutlayType (TypeName) values ("Breakfast");
-Insert Into OutlayType (TypeName) values ("Lunch");
-Insert Into OutlayType (TypeName) values ("Dinner");
-Insert Into OutlayType (TypeName) values ("Midnight Snack");
-Insert Into OutlayType (TypeName) values ("Beverage");
-Insert Into OutlayType (TypeName) values ("Snack");
-Insert Into OutlayType (TypeName) values ("Clothes");
-Insert Into OutlayType (TypeName) values ("Transportation");
-Insert Into OutlayType (TypeName) values ("Books");
-Insert Into OutlayType (TypeName) values ("Entertainment");
-
 Create Table if not exists IncomeType (
     Type int not null auto_increment primary key,
     TypeName varchar(20) not null unique
 );
-
-Insert Into IncomeType (TypeName) values ("Salary");
-Insert Into IncomeType (TypeName) values ("Present");
-Insert Into IncomeType (TypeName) values ("Other");
 
 Create Table if not exists Pool (
     UserId int not null,
