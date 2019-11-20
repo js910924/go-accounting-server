@@ -7,7 +7,8 @@ import (
 	"server/middleware"
 	"server/models"
 	"strconv"
-	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func (s *Server) createUser() http.HandlerFunc {
@@ -19,22 +20,12 @@ func (s *Server) createUser() http.HandlerFunc {
 		query := fmt.Sprintf(`INSERT INTO User (Name, Account, Password) VALUES ("%s", "%s", "%s")`, name, account, password)
 		log.Println("[Query]", query)
 
-		fmt.Println("[Query] I'm Find!!!")
 		_, err := s.DB.Query(query)
 		if err != nil {
 			log.Println(err)
 		}
 
-		fmt.Println("[New Cookie] I'm Find!!!")
-		c := &http.Cookie{
-			Name:  "user",
-			Value: name + " " + account + " " + password,
-		}
-
-		fmt.Println("[SetCookie] I'm Find!!!")
-		http.SetCookie(w, c)
-		fmt.Println("[Redirect] I'm Find!!!")
-		http.Redirect(w, r, "/User", http.StatusFound)
+		http.Redirect(w, r, "/Login", http.StatusFound)
 	}
 }
 
@@ -64,44 +55,37 @@ func (s *Server) login() http.HandlerFunc {
 
 func (s *Server) showUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// renderTemplate(a.Templates, w, "user", nil)
+		// Haven't login yet
 		c, err := r.Cookie("user")
 		if err != nil {
-			c = &http.Cookie{
-				Name:  "user",
-				Value: "",
-			}
-
-			fmt.Fprint(w, "No Cookie")
+			http.Redirect(w, r, "/Login", http.StatusFound)
 			return
 		}
 
-		values := strings.Split(c.Value, " ")
-		item := struct {
-			Name     string
-			Account  string
-			Password string
-		}{
-			Name:     values[0],
-			Account:  values[1],
-			Password: values[2],
+		// Not that user's account
+		userID := mux.Vars(r)["id"]
+		if c.Value != userID {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
 		}
 
-		middleware.RenderTemplate(s.Templates, w, "user", item)
+		// Search database
+		query := fmt.Sprintf("SELECT * FROM User WHERE UId=%s;", userID)
+		row, err := s.DB.Query(query)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		user := models.User{}
+		for row.Next() {
+			if err := row.Scan(&user.UId, &user.Name, &user.Account, &user.Password, &user.CreateTime); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		middleware.RenderTemplate(s.Templates, w, "user", user)
 	}
 }
-
-// func index(w http.ResponseWriter, r *http.Request) {
-// 	middleware.RenderTemplate(a.Templates, w, "index", "Home")
-// }
-
-// func Register(w http.ResponseWriter, r *http.Request) {
-// 	middleware.RenderTemplate(a.Templates, w, "register", "Register Page")
-// }
-
-// func login(w http.ResponseWriter, r *http.Request) {
-// 	middleware.RenderTemplate(a.Templates, w, "login", "Login")
-// }
 
 func (s *Server) checkLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -125,13 +109,14 @@ func (s *Server) checkLogin() http.HandlerFunc {
 
 		if user.UId != 0 {
 			log.Println("[Success] Login")
+			id := strconv.Itoa(user.UId)
 			c := &http.Cookie{
 				Name:  "user",
-				Value: user.Name + " " + user.Account + " " + user.Password,
+				Value: id,
 			}
 
 			http.SetCookie(w, c)
-			http.Redirect(w, r, "/User", http.StatusFound)
+			http.Redirect(w, r, "/Users/"+id, http.StatusFound)
 			return
 		}
 

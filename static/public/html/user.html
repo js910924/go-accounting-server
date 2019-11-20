@@ -23,17 +23,17 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-auto">
-                <form action="/User/AllData" method="GET">
+                <form action="/User/{{ .UId }}/AllData" method="GET">
                     <button class="btn btn-warning">Show All</button>
                 </form>
             </div>
             <div class="col-auto">
-                <form action="/User/Outlay" method="GET">
+                <form action="/User/{{ .UId }}/Outlay" method="GET">
                     <button class="btn btn-success">Outlay</button>
                 </form>
             </div>
             <div class="col-auto">
-                <form action="/User/Income" method="GET">
+                <form action="/User/{{ .UId }}/Income" method="GET">
                     <button class="btn btn-primary">Income</button>
                 </form>
             </div>

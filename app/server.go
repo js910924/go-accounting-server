@@ -22,19 +22,26 @@ func (s *Server) Init() {
 
 	s.Templates = template.Must(template.ParseFiles(allTemplates...))
 	s.connectDB()
-
+	err := s.DB.Ping()
+	if err != nil {
+		panic(err)
+	}
 	//---import sql file-----------------------------------
 	// file, err := ioutil.ReadFile("./db/CreateDB.sql")
 	// if err != nil {
 	// 	panic(err)
 	// }
 
-	// a.DB.Exec(string(file))
+	// rs, err := s.DB.Exec(string(file))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(rs)
 	// file, err = ioutil.ReadFile("./db/InsertTable.sql")
 	// if err != nil {
 	// 	panic(err)
 	// }
-	// a.DB.Exec(string(file))
+	// s.DB.Exec(string(file))
 	//---import sql file-----------------------------------
 
 	s.Router = mux.NewRouter()
@@ -47,19 +54,22 @@ func (s *Server) setRoutes() {
 	s.Router.HandleFunc("/Login", s.login()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
 
-	user := s.Router.PathPrefix("/User").Subrouter()
-	user.HandleFunc("", s.showUser()).Methods("GET")
+	user := s.Router.PathPrefix("/Users").Subrouter()
+	// user.HandleFunc("", s.showAllUser()).Methods("GET")
 	user.HandleFunc("", s.createUser()).Methods("POST")
-	user.HandleFunc("/AllData", s.showAllData()).Methods("GET")
-	user.HandleFunc("/Outlay", s.showOutlay()).Methods("GET")
-	user.HandleFunc("/Outlay", s.createOutlay()).Methods("POST")
-	user.HandleFunc("/Income", s.showIncome()).Methods("GET")
+	user.HandleFunc("/{id}", s.showUser()).Methods("GET")
+	user.HandleFunc("/{id}/AllData", s.showAllData()).Methods("GET")
+	user.HandleFunc("/{id}/Outlay", s.showOutlay()).Methods("GET")
+	user.HandleFunc("/{id}/Outlay", s.createOutlay()).Methods("POST")
+	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
+	// user.HandleFunc("/{id}/Income", s.showIncome()).Methods("POST")
 }
 
 func (s *Server) connectDB() {
 	var err error
-	s.DB, err = sql.Open("mysql", "root:0924@/account")
+	s.DB, err = sql.Open("mysql", "root:@/account")
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")
+		panic(err)
 	}
 }

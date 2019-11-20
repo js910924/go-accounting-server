@@ -20,6 +20,17 @@ RUN mkdir $HOME/go
 COPY .vimrc ./
 ```
 
+## Todo
+1. Encrypy Password
+2. Modify Cookie format
+3. Make API more like RESTful APi
+	> Ex. /Users/:id
+4. Show All users data
+	> Ex. /Users
+5. Let user can see all his records
+	> Ex. /Users/:id/Pool
+6. Let user can record income
+
 ## Note
 
 ### Set Template Value
