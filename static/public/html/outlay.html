@@ -11,14 +11,14 @@
     <h1 class="text-center">Outlay Page</h1>
 
     <div class="container">
-        <form action="/User/Outlay" method="POST">
+        <form action="/Users/Outlay" method="POST">
             <div class="input-group">
                 <input type="text" name="detailType" id="Type" placeholder="Type No" readonly>
                 <input id="TypeName" placeholder="Choose Outlay Type" type="text" class="form-control" aria-label="Text input with dropdown button" readonly>
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
                     <div class="dropdown-menu">
-                        {{ range .}}
+                        {{ range . }}
                             <button class="dropdown-item" type="button" onclick="OnChooseType(this)" value="{{ .Type }}">{{ .TypeName }}</button>
                         {{ end }}
                         <!-- <div role="separator" class="dropdown-divider"></div>

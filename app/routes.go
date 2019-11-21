@@ -49,7 +49,13 @@ func (s *Server) login() http.HandlerFunc {
 	data := "Login"
 	tmplName := "login"
 	return func(w http.ResponseWriter, r *http.Request) {
-		middleware.RenderTemplate(s.Templates, w, tmplName, data)
+		c, err := r.Cookie("user")
+		if err != nil {
+			middleware.RenderTemplate(s.Templates, w, tmplName, data)
+			return
+		}
+
+		http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
 	}
 }
 
@@ -65,7 +71,7 @@ func (s *Server) showUser() http.HandlerFunc {
 		// Not that user's account
 		userID := mux.Vars(r)["id"]
 		if c.Value != userID {
-			http.Redirect(w, r, "/", http.StatusFound)
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
 			return
 		}
 
@@ -121,13 +127,25 @@ func (s *Server) checkLogin() http.HandlerFunc {
 		}
 
 		log.Printf("[Warning] No Such User!!!")
-		log.Printf("[User] UId: %d, Name: %s, Account: %s, Password: %s, CreateTime: %s\n", user.UId, user.Name, user.Account, user.Password, string(user.CreateTime))
+		log.Printf("[User] Account: %s, Password: %s\n", account, password)
 		http.Redirect(w, r, "/Login", http.StatusFound)
 	}
 }
 
 func (s *Server) showIncome() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID := mux.Vars(r)["id"]
+		c, err := r.Cookie("user")
+		if err != nil {
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
+		}
+
+		if c.Value != userID {
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+			return
+		}
+
 		query := "SELECT * FROM incomeType ORDER BY type"
 		row, err := s.DB.Query(query)
 		if err != nil {
@@ -147,6 +165,18 @@ func (s *Server) showIncome() http.HandlerFunc {
 
 func (s *Server) showOutlay() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		userID := mux.Vars(r)["id"]
+		c, err := r.Cookie("user")
+		if err != nil {
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
+		}
+
+		if c.Value != userID {
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+			return
+		}
+
 		query := "SELECT * FROM outlayType ORDER BY type"
 		row, err := s.DB.Query(query)
 		if err != nil {
@@ -168,11 +198,23 @@ func (s *Server) showAllData() http.HandlerFunc {
 	data := "All Data Paga"
 	tmplName := "allData"
 	return func(w http.ResponseWriter, r *http.Request) {
-		middleware.RenderTemplate(s.Templates, w, tmplName, data)
+		userID := mux.Vars(r)["id"]
+		c, err := r.Cookie("user")
+		if err != nil {
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
+		}
+
+		if c.Value == userID {
+			middleware.RenderTemplate(s.Templates, w, tmplName, data)
+		} else {
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+		}
 	}
 }
 
 func (s *Server) createOutlay() http.HandlerFunc {
+	// Todo
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(r.Form)
 		detailType, err := strconv.Atoi(r.FormValue("detailType"))
@@ -208,5 +250,4 @@ func (s *Server) createOutlay() http.HandlerFunc {
 		log.Println("[Success]", result, "Data:", data)
 		http.Redirect(w, r, "/User", http.StatusFound)
 	}
-
 }

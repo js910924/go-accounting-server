@@ -67,7 +67,7 @@ func (s *Server) setRoutes() {
 
 func (s *Server) connectDB() {
 	var err error
-	s.DB, err = sql.Open("mysql", "root:@/account")
+	s.DB, err = sql.Open("mysql", "root:jswind0924@/account")
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")
 		panic(err)

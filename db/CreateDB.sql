@@ -1,6 +1,6 @@
 Create Database if not exists Account;
 
-use Account;
+use account;
 
 Create Table if not exists User (
     UId int not null auto_increment primary key,
