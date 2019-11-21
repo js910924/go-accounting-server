@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,13 @@ func (s *Server) createUser() http.HandlerFunc {
 		name := r.FormValue("name")
 		account := r.FormValue("account")
 		password := r.FormValue("password")
+
+		salt1 := "@#$%"
+		salt2 := "^&*()"
+		h := sha256.New()
+		h.Write([]byte(salt1 + name + password + salt2))
+		bs := h.Sum(nil)
+		password = fmt.Sprintf("%x", bs)
 
 		query := fmt.Sprintf(`INSERT INTO User (Name, Account, Password) VALUES ("%s", "%s", "%s")`, name, account, password)
 		log.Println("[Query]", query)
