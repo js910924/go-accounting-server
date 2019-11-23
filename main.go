@@ -15,6 +15,9 @@ var server app.Server
 func main() {
 	server.Init()
 
+	// log.SetPrefix("")
+	log.SetFlags(log.Lshortfile)
+
 	log.Println("Starting Server...")
 	log.Fatal(http.ListenAndServe(":80", server.Router))
 }

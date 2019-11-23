@@ -20,6 +20,7 @@ type Server struct {
 }
 
 func (s *Server) Init() {
+	log.SetFlags(log.Lshortfile)
 	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay"}
 	for i := range allTemplates {
 		allTemplates[i] = "./static/public/html/" + allTemplates[i] + ".html"

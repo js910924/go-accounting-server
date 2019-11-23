@@ -1,7 +1,6 @@
 package app
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,14 +17,15 @@ func (s *Server) createUser() http.HandlerFunc {
 		account := r.FormValue("account")
 		password := r.FormValue("password")
 
-		salt1 := "@#$%"
-		salt2 := "^&*()"
-		h := sha256.New()
-		h.Write([]byte(salt1 + name + password + salt2))
-		bs := h.Sum(nil)
-		password = fmt.Sprintf("%x", bs)
+		// salt1 := "@#$%"
+		// salt2 := "^&*()"
+		// h := sha256.New()
+		// h.Write([]byte(salt1 + name + password + salt2))
+		// bs := h.Sum(nil)
+		// password = fmt.Sprintf("%x", bs)
+		hashPwd := middleware.HashAndSalt([]byte(password))
 
-		query := fmt.Sprintf(`INSERT INTO User (Name, Account, Password) VALUES ("%s", "%s", "%s")`, name, account, password)
+		query := fmt.Sprintf(`INSERT INTO User (Name, Account, Password) VALUES ("%s", "%s", "%s")`, name, account, hashPwd)
 		log.Println("[Query]", query)
 
 		_, err := s.DB.Query(query)
@@ -106,7 +106,8 @@ func (s *Server) checkLogin() http.HandlerFunc {
 		account := r.FormValue("account")
 		password := r.FormValue("password")
 
-		query := fmt.Sprintf(`SELECT * FROM User WHERE Account="%s" AND Password="%s";`, account, password)
+		// query := fmt.Sprintf(`SELECT * FROM User WHERE Account="%s" AND Password="%s";`, account, hashPwd)
+		query := fmt.Sprintf(`SELECT * FROM User WHERE Account="%s";`, account)
 		log.Println("[Query]", query)
 
 		row, err := s.DB.Query(query)
@@ -121,7 +122,7 @@ func (s *Server) checkLogin() http.HandlerFunc {
 			}
 		}
 
-		if user.UId != 0 {
+		if middleware.ComparePasswords(user.Password, []byte(password)) {
 			log.Println("[Success] Login")
 			id := strconv.Itoa(user.UId)
 			c := &http.Cookie{
