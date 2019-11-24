@@ -11,18 +11,48 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func (s *Server) showAllUsers() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		query := fmt.Sprintf(`SELECT * FROM User;`)
+		log.Println("[Query]", query)
+
+		row, err := s.DB.Query(query)
+		if err != nil {
+			log.Println(err)
+		}
+
+		var user models.User
+		var allUser []models.User = []models.User{}
+		for row.Next() {
+			row.Scan(&user.UId, &user.Name, &user.Account, &user.Password, &user.CreateTime)
+			allUser = append(allUser, user)
+		}
+
+		middleware.RenderTemplate(s.Templates, w, "allUsers", allUser)
+	}
+}
+
+func (s *Server) showAllPools() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		fmt.Fprintf(w, "Pools")
+	}
+}
+
 func (s *Server) createUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.FormValue("name")
 		account := r.FormValue("account")
 		password := r.FormValue("password")
 
+		//---sha256 + salt------------------------
 		// salt1 := "@#$%"
 		// salt2 := "^&*()"
 		// h := sha256.New()
 		// h.Write([]byte(salt1 + name + password + salt2))
 		// bs := h.Sum(nil)
 		// password = fmt.Sprintf("%x", bs)
+		//---sha256 + salt------------------------
 		hashPwd := middleware.HashAndSalt([]byte(password))
 
 		query := fmt.Sprintf(`INSERT INTO User (Name, Account, Password) VALUES ("%s", "%s", "%s")`, name, account, hashPwd)
@@ -198,13 +228,17 @@ func (s *Server) showOutlay() http.HandlerFunc {
 			row.Scan(&outlay.Type, &outlay.TypeName)
 			allOutlay = append(allOutlay, outlay)
 		}
+
+		packet := models.Packet{
+			UserID: userID,
+			Data:   allOutlay,
+		}
 		log.Println("[Success] All Outlays:", allOutlay)
-		middleware.RenderTemplate(s.Templates, w, "outlay", allOutlay)
+		middleware.RenderTemplate(s.Templates, w, "outlay", packet)
 	}
 }
 
 func (s *Server) showAllData() http.HandlerFunc {
-	data := "All Data Paga"
 	tmplName := "allData"
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := mux.Vars(r)["id"]
@@ -215,7 +249,25 @@ func (s *Server) showAllData() http.HandlerFunc {
 		}
 
 		if c.Value == userID {
-			middleware.RenderTemplate(s.Templates, w, tmplName, data)
+			query := fmt.Sprintf("SELECT * FROM Pool WHERE UserId=%s", userID)
+			row, err := s.DB.Query(query)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			var data models.Data
+			var allData []models.Data = []models.Data{}
+			for row.Next() {
+				row.Scan(&data.UserId, &data.ActionType, &data.DetailType, &data.Money, &data.Description, &data.CreateTime)
+				allData = append(allData, data)
+			}
+
+			packet := models.Packet{
+				UserID: userID,
+				Data:   allData,
+			}
+
+			middleware.RenderTemplate(s.Templates, w, tmplName, packet)
 		} else {
 			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
 		}
@@ -223,9 +275,12 @@ func (s *Server) showAllData() http.HandlerFunc {
 }
 
 func (s *Server) createOutlay() http.HandlerFunc {
-	// Todo
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Form)
+		userID := mux.Vars(r)["id"]
+		id, err := strconv.Atoi(userID)
+		if err != nil {
+			log.Fatal(err)
+		}
 		detailType, err := strconv.Atoi(r.FormValue("detailType"))
 		if err != nil {
 			log.Fatalln("[Fail]", err)
@@ -237,7 +292,7 @@ func (s *Server) createOutlay() http.HandlerFunc {
 		}
 
 		var data models.Data = models.Data{
-			UserId:      1,
+			UserId:      id,
 			ActionType:  1,
 			DetailType:  detailType,
 			Money:       money,
@@ -257,6 +312,6 @@ func (s *Server) createOutlay() http.HandlerFunc {
 		}
 
 		log.Println("[Success]", result, "Data:", data)
-		http.Redirect(w, r, "/User", http.StatusFound)
+		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
 	}
 }

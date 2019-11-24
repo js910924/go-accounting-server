@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"log"
 	"net/http"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func RenderTemplate(tmpl *template.Template, w http.ResponseWriter, tmplName string, data interface{}) {

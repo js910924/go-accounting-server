@@ -10,6 +10,11 @@ Create Table if not exists User (
     CreateTime timestamp default current_timestamp
 );
 
+Create Table if not exists ActionType (
+    Type int not null primary key,
+    TypeName varchar(20) not null unique
+)
+
 Create Table if not exists OutlayType (
     Type int not null auto_increment primary key,
     TypeName varchar(20) not null unique

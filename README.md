@@ -21,21 +21,21 @@ COPY .vimrc ./
 ```
 
 ## Todo
-1. Encrypy Password
-2. Modify Cookie format
-3. Make API more like RESTful APi
+- [ ] Let user can record income
+- [ ] Modify Cookie format
+- [x] Encrypy Password - Done(2019.11.22)
+- [x] Make API more like RESTful APi - Done
 	> Ex. /Users/:id
-4. Show All users data
+- [x] Show All users data - Done(2019.11.23)
 	> Ex. /Users
-5. Let user can see all his records
+- [x] Let user can see all his records	- Done(2019.11.24)
 	> Ex. /Users/:id/Pool
-6. Let user can record income
 
 ## Note
 
 ### Set Template Value
 ```go
-unc UserHandler(w http.ResponseWriter, r *http.Request) {
+func UserHandler(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("user")
 	if err != nil {
 		c = &http.Cookie{

@@ -8,6 +8,20 @@
     <title>All Data</title>
 </head>
 <body>
-    <h1>{{ . }}</h1>
+    <h1 class="text-center">UserID: {{ .UserID }}</h1>
+    <div class="container">
+        {{ range .Data }}
+        <div class="card">
+            <div class="card-header">
+                {{ .ActionType }} {{ .DetailType }} {{ printf "%s" .CreateTime }}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ .Money }}</h5>
+                <p class="card-text">{{ .Description }}</p>
+                <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+            </div>
+        </div>
+        {{ end }}
+    </div>
 </body>
 </html>

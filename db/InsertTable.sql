@@ -1,3 +1,6 @@
+INSERT INTO ActionType (Type, TypeName) VALUES (1, "OutLay")
+INSERT INTO ActionType (Type, TypeName) VALUES (2, "Income")
+
 Insert Into OutlayType (TypeName) values ("Breakfast");
 Insert Into OutlayType (TypeName) values ("Lunch");
 Insert Into OutlayType (TypeName) values ("Dinner");

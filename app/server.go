@@ -21,7 +21,7 @@ type Server struct {
 
 func (s *Server) Init() {
 	log.SetFlags(log.Lshortfile)
-	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay"}
+	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay", "allUsers"}
 	for i := range allTemplates {
 		allTemplates[i] = "./static/public/html/" + allTemplates[i] + ".html"
 	}
@@ -58,13 +58,14 @@ func (s *Server) setRoutes() {
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
 
 	user := s.Router.PathPrefix("/Users").Subrouter()
-	// user.HandleFunc("", s.showAllUser()).Methods("GET")
+	user.HandleFunc("", s.showAllUsers()).Methods("GET")
 	user.HandleFunc("", s.createUser()).Methods("POST")
 	user.HandleFunc("/{id}", s.showUser()).Methods("GET")
 	user.HandleFunc("/{id}/AllData", s.showAllData()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.showOutlay()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.createOutlay()).Methods("POST")
 	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
+	user.HandleFunc("/{id}/Pools", s.showAllPools()).Methods("GET")
 	// user.HandleFunc("/{id}/Income", s.showIncome()).Methods("POST")
 }
 
