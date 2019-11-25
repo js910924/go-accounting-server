@@ -15,20 +15,25 @@ FROM golang:latest
 MAINTAINER Jason jswind@myemail.com
 LABEL description="This is a accounting server example" version="1.0" owner="Jason Chen"
 RUN apt-get update
-RUN apt-get install vim net-tools tmux
-RUN mkdir $HOME/go
-COPY .vimrc ./
+RUN apt-get install vim -y
+RUN apt-get install net-tools -y
+RUN apt-get install tmux -y
+COPY ./ ./src/go-account
 ```
 
 ## Todo
-- [ ] Let user can record income
 - [ ] Modify Cookie format
-- [x] Encrypy Password - Done(2019.11.22)
-- [x] Make API more like RESTful APi - Done
+- [ ] More Detail Search
+	> Ex. Show data only in Nov.
+- [ ] Add html header & footer
+- [ ] Add Navbar
+- [x] Let user can record income (2019.11.26)
+- [x] Encrypy Password (2019.11.22)
+- [x] Make API more like RESTful APi (2019.11.24)
 	> Ex. /Users/:id
-- [x] Show All users data - Done(2019.11.23)
+- [x] Show All users data (2019.11.23)
 	> Ex. /Users
-- [x] Let user can see all his records	- Done(2019.11.24)
+- [x] Let user can see all his records (2019.11.24)
 	> Ex. /Users/:id/Pool
 
 ## Note

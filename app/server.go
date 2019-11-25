@@ -63,10 +63,10 @@ func (s *Server) setRoutes() {
 	user.HandleFunc("/{id}", s.showUser()).Methods("GET")
 	user.HandleFunc("/{id}/AllData", s.showAllData()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.showOutlay()).Methods("GET")
-	user.HandleFunc("/{id}/Outlay", s.createOutlay()).Methods("POST")
+	user.HandleFunc("/{id}/Outlay", s.createAction()).Methods("POST")
 	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
 	user.HandleFunc("/{id}/Pools", s.showAllPools()).Methods("GET")
-	// user.HandleFunc("/{id}/Income", s.showIncome()).Methods("POST")
+	user.HandleFunc("/{id}/Income", s.createAction()).Methods("POST")
 }
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {

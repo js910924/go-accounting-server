@@ -10,18 +10,30 @@
 <body>
     <h1 class="text-center">UserID: {{ .UserID }}</h1>
     <div class="container">
-        {{ range .Data }}
-        <div class="card">
-            <div class="card-header">
-                {{ .ActionType }} {{ .DetailType }} {{ printf "%s" .CreateTime }}
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ .Money }}</h5>
-                <p class="card-text">{{ .Description }}</p>
-                <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
-            </div>
-        </div>
-        {{ end }}
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Action Type</th>
+                    <th scope="col">Detail Type</th>
+                    <th scope="col">Money</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Create Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range $index, $element := .Data }}
+                <tr>
+                    <th scope="row">{{ $index }}</th>
+                    <td>{{ $element.ActionType }}</td>
+                    <td>{{ $element.DetailType }}</td>
+                    <td>{{ $element.Money }}</td>
+                    <td>{{ $element.Description }}</td>
+                    <td>{{ printf "%s" $element.CreateTime }}</td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

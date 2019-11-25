@@ -185,20 +185,25 @@ func (s *Server) showIncome() http.HandlerFunc {
 			return
 		}
 
-		query := "SELECT * FROM incomeType ORDER BY type"
+		query := "SELECT * FROM Action WHERE ActionType=2 ORDER BY DetailType"
 		row, err := s.DB.Query(query)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		allIncome := []models.Income{}
-		var income models.Income
+		allIncome := []models.Action{}
+		var action models.Action
 		for row.Next() {
-			row.Scan(&income.Type, &income.TypeName)
-			allIncome = append(allIncome, income)
+			row.Scan(&action.ActionType, &action.DetailType, &action.DetailName)
+			allIncome = append(allIncome, action)
 		}
 
-		middleware.RenderTemplate(s.Templates, w, "income", allIncome)
+		packet := models.Packet{
+			UserID: userID,
+			Data:   allIncome,
+		}
+
+		middleware.RenderTemplate(s.Templates, w, "income", packet)
 	}
 }
 
@@ -216,23 +221,24 @@ func (s *Server) showOutlay() http.HandlerFunc {
 			return
 		}
 
-		query := "SELECT * FROM outlayType ORDER BY type"
+		query := "SELECT * FROM Action WHERE ActionType=1 ORDER BY DetailType"
 		row, err := s.DB.Query(query)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		allOutlay := []models.Outlay{}
-		var outlay models.Outlay
+		allOutlay := []models.Action{}
+		var action models.Action
 		for row.Next() {
-			row.Scan(&outlay.Type, &outlay.TypeName)
-			allOutlay = append(allOutlay, outlay)
+			row.Scan(&action.ActionType, &action.DetailType, &action.DetailName)
+			allOutlay = append(allOutlay, action)
 		}
 
 		packet := models.Packet{
 			UserID: userID,
 			Data:   allOutlay,
 		}
+
 		log.Println("[Success] All Outlays:", allOutlay)
 		middleware.RenderTemplate(s.Templates, w, "outlay", packet)
 	}
@@ -274,13 +280,18 @@ func (s *Server) showAllData() http.HandlerFunc {
 	}
 }
 
-func (s *Server) createOutlay() http.HandlerFunc {
+func (s *Server) createAction() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := mux.Vars(r)["id"]
+		actionType, err := strconv.Atoi(r.FormValue("actionType"))
+		if err != nil {
+			log.Fatal(err)
+		}
 		id, err := strconv.Atoi(userID)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		detailType, err := strconv.Atoi(r.FormValue("detailType"))
 		if err != nil {
 			log.Fatalln("[Fail]", err)
@@ -293,7 +304,7 @@ func (s *Server) createOutlay() http.HandlerFunc {
 
 		var data models.Data = models.Data{
 			UserId:      id,
-			ActionType:  1,
+			ActionType:  actionType,
 			DetailType:  detailType,
 			Money:       money,
 			Description: r.FormValue("description"),
@@ -314,4 +325,12 @@ func (s *Server) createOutlay() http.HandlerFunc {
 		log.Println("[Success]", result, "Data:", data)
 		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
 	}
+}
+
+type pool struct {
+	ActionName  string
+	DetailName  string
+	Money       int
+	Description string
+	CreateTime  []int8
 }

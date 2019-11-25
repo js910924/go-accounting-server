@@ -10,20 +10,27 @@ Create Table if not exists User (
     CreateTime timestamp default current_timestamp
 );
 
-Create Table if not exists ActionType (
-    Type int not null primary key,
-    TypeName varchar(20) not null unique
+Create Table if not exists Action (
+    ActionType int not null,
+    DetailType int not null,
+    DetailName varchar(20) not null unique,
+    PRIMARY KEY (ActionType, DetailType)
 )
 
-Create Table if not exists OutlayType (
-    Type int not null auto_increment primary key,
-    TypeName varchar(20) not null unique
-);
+-- Create Table if not exists ActionType (
+--     Type int not null primary key,
+--     TypeName varchar(20) not null unique
+-- )
 
-Create Table if not exists IncomeType (
-    Type int not null auto_increment primary key,
-    TypeName varchar(20) not null unique
-);
+-- Create Table if not exists OutlayType (
+--     Type int not null auto_increment primary key,
+--     TypeName varchar(20) not null unique
+-- );
+
+-- Create Table if not exists IncomeType (
+--     Type int not null auto_increment primary key,
+--     TypeName varchar(20) not null unique
+-- );
 
 Create Table if not exists Pool (
     UserId int not null,

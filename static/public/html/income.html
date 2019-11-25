@@ -8,10 +8,70 @@
     <title>Income</title>
 </head>
 <body>
-    <h1>Income Page</h1>
-    {{ range .}}
-        <h3>{{ .Type }}</h3>
-        <p>{{ .TypeName }}</p>
-    {{ end }}
+    <h1 class="text-center">Income Page</h1>
+
+    <div class="container">
+        <form action="/Users/{{ .UserID }}/Income" method="POST">
+            <div class="input-group">
+                <input type="text" name="actionType" value="2" hidden>
+                <input type="text" name="detailType" id="detailType" placeholder="Type No" readonly>
+                <input id="detailTypeName" placeholder="Choose Income Type" type="text" class="form-control" aria-label="Text input with dropdown button" readonly>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
+                    <div id="actionDetail" class="dropdown-menu">
+                        {{ range .Data }}
+                            <button class="dropdown-item" type="button" onclick="OnChooseDetailType(this)" value="{{ .DetailType }}">{{ .DetailName }}</button>
+                        {{ end }}
+                        <!-- <div role="separator" class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Separated link</a> -->
+                    </div>
+                </div>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                        <span class="input-group-text">$</span>
+                </div>
+                <input name="money" type="number" class="form-control" aria-label="Amount (to the nearest dollar)">
+                <div class="input-group-append">
+                    <span class="input-group-text">.00</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Description</span>
+                </div>
+                <textarea name="description" class="form-control" aria-label="With textarea"></textarea>
+            </div>
+            <div class="text-right">
+                <button type="submit" class="btn btn-success">Send</button>
+            </div>
+        </form>
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <form action="/Users/{{ .UserID}}" method="GET">
+                    <button type="submit" class="btn btn-primary">Go Back</button>
+                </form>
+            </div>
+            <div class="col-auto">
+                <form action="">
+                    <button type="reset" class="btn btn-danger">Reset</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <script>
+        function OnChooseDetailType(element) {
+            let typeName = document.getElementById("detailTypeName");
+            let type = document.getElementById("detailType");
+            type.value = element.value;
+            typeName.value = element.innerText;
+        }
+    </script>
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
 </body>
 </html>

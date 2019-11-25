@@ -13,13 +13,14 @@
     <div class="container">
         <form action="/Users/{{ .UserID }}/Outlay" method="POST">
             <div class="input-group">
-                <input type="text" name="detailType" id="Type" placeholder="Type No" readonly>
-                <input id="TypeName" placeholder="Choose Outlay Type" type="text" class="form-control" aria-label="Text input with dropdown button" readonly>
+                <input type="text" name="actionType" value="1" hidden>
+                <input type="text" name="detailType" id="detailType" placeholder="Type No" readonly>
+                <input id="detailTypeName" placeholder="Choose Outlay Type" type="text" class="form-control" aria-label="Text input with dropdown button" readonly>
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
-                    <div class="dropdown-menu">
+                    <div id="actionDetail" class="dropdown-menu">
                         {{ range .Data }}
-                            <button class="dropdown-item" type="button" onclick="OnChooseType(this)" value="{{ .Type }}">{{ .TypeName }}</button>
+                            <button class="dropdown-item" type="button" onclick="OnChooseDetailType(this)" value="{{ .DetailType }}">{{ .DetailName }}</button>
                         {{ end }}
                         <!-- <div role="separator" class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#">Separated link</a> -->
@@ -61,9 +62,9 @@
 
     <!-- Optional JavaScript -->
     <script>
-        function OnChooseType(element) {
-            let typeName = document.getElementById("TypeName");
-            let type = document.getElementById("Type");
+        function OnChooseDetailType(element) {
+            let typeName = document.getElementById("detailTypeName");
+            let type = document.getElementById("detailType");
             type.value = element.value;
             typeName.value = element.innerText;
         }
