@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -21,12 +22,14 @@ type Server struct {
 
 func (s *Server) Init() {
 	log.SetFlags(log.Lshortfile)
-	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay", "allUsers"}
+	// import templates
+	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay", "allUsers", "partials/header", "partials/footer"}
 	for i := range allTemplates {
-		allTemplates[i] = "./static/public/html/" + allTemplates[i] + ".html"
+		allTemplates[i] = "./template/" + allTemplates[i] + ".html"
 	}
 
 	s.Templates = template.Must(template.ParseFiles(allTemplates...))
+
 	s.connectDB("mysql", "root", "0924", "account")
 
 	//---import sql file-----------------------------------
@@ -52,12 +55,13 @@ func (s *Server) Init() {
 }
 
 func (s *Server) setRoutes() {
+	s.Router.PathPrefix("/style/css/").Handler(http.StripPrefix("/style/css/", http.FileServer(http.Dir("template/style/css/"))))
 	s.Router.HandleFunc("/", s.index()).Methods("GET")
 	s.Router.HandleFunc("/Register", s.signUp()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.login()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
 
-	user := s.Router.PathPrefix("/Users").Subrouter()
+	user := s.Router.PathPrefix("/Users").Subrouter().StrictSlash(true)
 	user.HandleFunc("", s.showAllUsers()).Methods("GET")
 	user.HandleFunc("", s.createUser()).Methods("POST")
 	user.HandleFunc("/{id}", s.showUser()).Methods("GET")
@@ -65,7 +69,6 @@ func (s *Server) setRoutes() {
 	user.HandleFunc("/{id}/Outlay", s.showOutlay()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.createAction()).Methods("POST")
 	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
-	user.HandleFunc("/{id}/Pools", s.showAllPools()).Methods("GET")
 	user.HandleFunc("/{id}/Income", s.createAction()).Methods("POST")
 }
 

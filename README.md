@@ -25,16 +25,22 @@ COPY ./ ./src/go-account
 - [ ] Modify Cookie format
 - [ ] More Detail Search
 	> Ex. Show data only in Nov.
-- [ ] Add html header & footer
-- [ ] Add Navbar
+	
+- [x] Add static file serve	(2019.11.27)
+	> Ex. .css & .js file
+- [x] Add html header & footer (2019.11.27)
+- [x] Add Navbar (2019.11.27)
 - [x] Let user can record income (2019.11.26)
 - [x] Encrypy Password (2019.11.22)
 - [x] Make API more like RESTful APi (2019.11.24)
 	> Ex. /Users/:id
+- [x] Let user can see all his records (2019.11.24)
+	> Ex. /Users/:id/Logs
 - [x] Show All users data (2019.11.23)
 	> Ex. /Users
-- [x] Let user can see all his records (2019.11.24)
-	> Ex. /Users/:id/Pool
+
+## Bug
+- [ ] Only main router can find css path, subrouter should find too.
 
 ## Note
 

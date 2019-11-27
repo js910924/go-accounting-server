@@ -32,13 +32,6 @@ func (s *Server) showAllUsers() http.HandlerFunc {
 	}
 }
 
-func (s *Server) showAllPools() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		fmt.Fprintf(w, "Pools")
-	}
-}
-
 func (s *Server) createUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.FormValue("name")
@@ -255,7 +248,7 @@ func (s *Server) showAllData() http.HandlerFunc {
 		}
 
 		if c.Value == userID {
-			query := fmt.Sprintf("SELECT * FROM Pool WHERE UserId=%s", userID)
+			query := fmt.Sprintf("SELECT * FROM Log WHERE UserId=%s", userID)
 			row, err := s.DB.Query(query)
 			if err != nil {
 				log.Fatal(err)
@@ -275,7 +268,7 @@ func (s *Server) showAllData() http.HandlerFunc {
 
 			middleware.RenderTemplate(s.Templates, w, tmplName, packet)
 		} else {
-			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+			http.Redirect(w, r, "/Users/"+c.Value+"/AllData", http.StatusFound)
 		}
 	}
 }
@@ -310,7 +303,7 @@ func (s *Server) createAction() http.HandlerFunc {
 			Description: r.FormValue("description"),
 		}
 
-		query := fmt.Sprintf("INSERT INTO pool (UserId, ActionType, DetailType, Money, Description) values ('%d', '%d', '%d', '%d', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description)
+		query := fmt.Sprintf("INSERT INTO Log (UserId, ActionType, DetailType, Money, Description) values ('%d', '%d', '%d', '%d', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description)
 		log.Println("[Query]", query)
 		row, err := s.DB.Query(query)
 		if err != nil {
@@ -327,7 +320,7 @@ func (s *Server) createAction() http.HandlerFunc {
 	}
 }
 
-type pool struct {
+type Log struct {
 	ActionName  string
 	DetailName  string
 	Money       int

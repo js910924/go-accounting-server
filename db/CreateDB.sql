@@ -32,7 +32,7 @@ Create Table if not exists Action (
 --     TypeName varchar(20) not null unique
 -- );
 
-Create Table if not exists Pool (
+Create Table if not exists Log (
     UserId int not null,
     ActionType int not null,
     DetailType int not null,
