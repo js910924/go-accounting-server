@@ -7,6 +7,7 @@ import (
 	"server/middleware"
 	"server/models"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -87,6 +88,25 @@ func (s *Server) login() http.HandlerFunc {
 		}
 
 		http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+	}
+}
+
+func (s *Server) logOut() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("user")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Clear Cookie
+		if c.String() != "" {
+			c.Value = ""
+			c.Expires = time.Unix(0, 0)
+			c.HttpOnly = true
+			http.SetCookie(w, c)
+		}
+
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
 

@@ -60,6 +60,7 @@ func (s *Server) setRoutes() {
 	s.Router.HandleFunc("/Register", s.signUp()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.login()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
+	s.Router.HandleFunc("/Logout", s.logOut()).Methods("GET")
 
 	user := s.Router.PathPrefix("/Users").Subrouter().StrictSlash(true)
 	user.HandleFunc("", s.showAllUsers()).Methods("GET")

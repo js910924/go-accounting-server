@@ -25,7 +25,8 @@ COPY ./ ./src/go-account
 - [ ] Modify Cookie format
 - [ ] More Detail Search
 	> Ex. Show data only in Nov.
-	
+
+- [x] Add logout feature => logout and delete cookie (2019.11.30)
 - [x] Add static file serve	(2019.11.27)
 	> Ex. .css & .js file
 - [x] Add html header & footer (2019.11.27)
