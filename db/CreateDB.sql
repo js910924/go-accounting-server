@@ -1,4 +1,4 @@
-Create Database if not exists Account;
+Create Database if not exists account;
 
 use account;
 
@@ -15,7 +15,17 @@ Create Table if not exists Action (
     DetailType int not null,
     DetailName varchar(20) not null unique,
     PRIMARY KEY (ActionType, DetailType)
-)
+);
+
+
+Create Table if not exists Log (
+    UserId int not null,
+    ActionType int not null,
+    DetailType int not null,
+    Money int not null,
+    Description varchar(20),
+    CreateTime timestamp default current_timestamp
+);
 
 -- Create Table if not exists ActionType (
 --     Type int not null primary key,
@@ -31,12 +41,3 @@ Create Table if not exists Action (
 --     Type int not null auto_increment primary key,
 --     TypeName varchar(20) not null unique
 -- );
-
-Create Table if not exists Log (
-    UserId int not null,
-    ActionType int not null,
-    DetailType int not null,
-    Money int not null,
-    Description varchar(20),
-    CreateTime timestamp default current_timestamp
-);

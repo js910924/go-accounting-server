@@ -30,25 +30,7 @@ func (s *Server) Init() {
 
 	s.Templates = template.Must(template.ParseFiles(allTemplates...))
 
-	s.connectDB("mysql", "root", "0924", "account")
-
-	//---import sql file-----------------------------------
-	// file, err := ioutil.ReadFile("./db/CreateDB.sql")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// rs, err := s.DB.Exec(string(file))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(rs)
-	// file, err = ioutil.ReadFile("./db/InsertTable.sql")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// s.DB.Exec(string(file))
-	//---import sql file-----------------------------------
+	s.connectDB("mysql", "root", "0000", "account")
 
 	s.Router = mux.NewRouter()
 	s.setRoutes()
@@ -85,27 +67,32 @@ func (s *Server) connectDB(driverName string, userName string, password string, 
 	if err = s.DB.Ping(); err != nil {
 		log.Println("[Fail]", err.Error())
 
-		if runtime.GOOS != "darwin" {
-			log.Fatal("[Fail] Connect DB ERROR... Unless you use MacOS")
-			return
-		}
-
 		switch true {
 		case strings.Contains(err.Error(), "connection refused"):
-			log.Println("[Handling] Trying start mysql server...")
-			cmd := exec.Command("mysql.server", "start")
+			log.Printf("[Handling] Trying to start mysql server... On %s\n", runtime.GOOS)
+			var cmd *exec.Cmd
+			switch runtime.GOOS {
+			case "darwin":
+				cmd = exec.Command("mysql.server", "start")
+
+			case "linux":
+				cmd = exec.Command("service", "mysql", "start")
+			}
+
 			if err := cmd.Run(); err != nil {
 				log.Fatal(err)
 			}
 
 			<-time.After(3 * time.Second) // Wait 3 seconds
 			s.connectDB(driverName, userName, password, dbName)
+			return
 
 		case strings.Contains(err.Error(), "Access denied"):
 			log.Println("[Handling] Please try another password...")
 			fmt.Scan(&password)
-			fmt.Println("[New Password]", password)
+			log.Println("[New Password]", password)
 			s.connectDB(driverName, userName, password, dbName)
+			return
 
 		default:
 			log.Fatalln("[Ping] Unknown Error")

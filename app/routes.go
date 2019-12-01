@@ -7,7 +7,6 @@ import (
 	"server/middleware"
 	"server/models"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -101,7 +100,8 @@ func (s *Server) logOut() http.HandlerFunc {
 		// Clear Cookie
 		if c.String() != "" {
 			c.Value = ""
-			c.Expires = time.Unix(0, 0)
+			// c.Expires = time.Unix(0, 0)
+			c.MaxAge = -1
 			c.HttpOnly = true
 			http.SetCookie(w, c)
 		}
@@ -127,7 +127,7 @@ func (s *Server) showUser() http.HandlerFunc {
 		}
 
 		// Search database
-		query := fmt.Sprintf("SELECT * FROM User WHERE UId=%s;", userID)
+		query := fmt.Sprintf("SELECT * FROM User WHERE UId = %s;", userID)
 		row, err := s.DB.Query(query)
 		if err != nil {
 			log.Fatal(err)

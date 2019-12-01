@@ -19,6 +19,25 @@ RUN apt-get install vim -y
 RUN apt-get install net-tools -y
 RUN apt-get install tmux -y
 COPY ./ ./src/go-account
+
+FROM ubuntu:latest
+MAINTAINER Jason js910924@gmail.com
+LABEL description="An accounting server" version="1.0" owner="Jason Chen"
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install net-tools -y
+RUN apt-get install vim -y
+RUN apt-get install tmux -y
+RUN apt-get install mysql-server -y
+RUN apt-get install wget -y
+RUN wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+RUN tar -xvf go1.13.4.linux-amd64.tar.gz
+RUN mkdir ~/go ~/go/src ~/go/pkg ~/go/bin
+RUN export GOROOT=/go
+RUN export GOPATH=~/go
+RUN PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+COPY ./ ./root/go/src/account-server
+RUN mv ./root/go/src/account-server/.vimrc ./root/.vimrc
 ```
 
 ## Todo
@@ -26,6 +45,9 @@ COPY ./ ./src/go-account
 - [ ] More Detail Search
 	> Ex. Show data only in Nov.
 
+- [x] Use maxAge to delete cookie (2019.12.1)
+- [x] Add db connect error handling while os is linux (2109.12.1)
+- [x] Rebuild Dockerfile & add deploy project to docker (2019.12.1)
 - [x] Add logout feature => logout and delete cookie (2019.11.30)
 - [x] Add static file serve	(2019.11.27)
 	> Ex. .css & .js file
@@ -134,3 +156,55 @@ func checkLogin(w http.ResponseWriter, r *http.Request) {
         fmt.Println(input)
     }
     ```
+
+### MySQL server can't start
+```shell
+$service mysql start
+ * Starting MySQL database server mysqld
+No directory, logging in with HOME=/		[fail]
+```
+
+Solution
+```shell
+$service mysql stop
+$usermod -d /var/lib/mysql/ mysql
+$ln -s /var/lib/mysql/mysql.sock /tmp/mysql.sock
+$chown -R mysql:mysql /var/lib/mysql
+$service mysql start
+ * Starting MySQL database server mysqld			[ OK ]
+```
+
+### Set MySQL root password at first time
+```shell
+$sudo cat /etc/mysql/debian.cnf
+\# Automatically generated for Debian scripts. DO NOT TOUCH!
+[client]
+host     = localhost
+user     = debian-sys-maint
+password = ggeu53390yo8tpVY
+socket   = /var/run/mysqld/mysqld.sock
+[mysql_upgrade]
+host     = localhost
+user     = debian-sys-maint
+password = ggeu53390yo8tpVY
+socket   = /var/run/mysqld/mysqld.sock
+
+$mysql -u debian-sys-maint -p
+Enter password: # ggeu53390yo8tpVY
+
+$mysql> use mysql;
+$mysql> UPDATE user SET plugin="mysql_native_password" WHERE user="root";
+$mysql> UPDATE user SET authentication_string=PASSWORD("0000") WHERE user="root";
+$mysql> FLUSH PRIVILEGES;
+$mysql> exit;
+$mysql -u root -p
+Enter password: # 0000
+```
+
+### Import SQL file
+```shell
+$mysql -u root -p < db/CreateDB.sql
+Enter password: # 0000
+$mysql -u root -p < db/InsertTable.sql
+Enter password: # 0000
+```

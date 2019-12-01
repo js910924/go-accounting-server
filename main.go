@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"server/app"
 
-	// "go-account-server/handler"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
