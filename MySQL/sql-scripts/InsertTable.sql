@@ -1,5 +1,3 @@
-CREATE DATABASE IF NOT EXISTS account;
-
 use account;
 
 INSERT INTO Action (ActionType, DetailType, DetailName)
