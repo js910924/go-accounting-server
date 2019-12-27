@@ -57,7 +57,7 @@ func (s *Server) setRoutes() {
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {
 	var err error
-	dataSourceName := fmt.Sprintf("%s:%s@/%s", userName, password, dbName)
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(172.20.0.2:3306)/%s", userName, password, dbName)
 	s.DB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")
@@ -80,7 +80,7 @@ func (s *Server) connectDB(driverName string, userName string, password string, 
 			}
 
 			if err := cmd.Run(); err != nil {
-				log.Fatal(err)
+				log.Println("[Fail] Restart fail, wait 3 sec..., Erro:", err)
 			}
 
 			<-time.After(3 * time.Second) // Wait 3 seconds

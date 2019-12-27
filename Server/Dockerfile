@@ -9,3 +9,7 @@ RUN apt-get install tmux -y
 RUN apt-get install curl -y
 COPY ./ ./src/go-account
 WORKDIR ./src/go-account
+RUN go install
+ENTRYPOINT go run main.go
+
+EXPOSE 5000

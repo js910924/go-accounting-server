@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  app:
+    container_name: go-server
+    build: ./Server
+    ports:
+      - "5000:5000"
+    environment:
+      - "DB_HOST=mysql"
+      - "DB_PORT=3306"
+      - "DB_NAME=account"
+      - "DB_ROOT_PASSWORD=0000"
+    networks:
+        backend:
+          ipv4_address: 172.20.0.3
+
+  db:
+    container_name: go-db
+    build: ./MySQL
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./MySQL/Data:/var/lib/mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=0000"
+      - "MYSQL_DATABASE=account"
+    networks:
+      backend:
+        ipv4_address: 172.20.0.2
+
+   
+networks:
+    backend:
+      driver: bridge
+      ipam:
+        driver: default
+        config:
+          - subnet: 172.20.0.0/16

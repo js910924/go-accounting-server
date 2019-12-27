@@ -27,6 +27,22 @@ Create Table if not exists Log (
     CreateTime timestamp default current_timestamp
 );
 
+INSERT INTO Action (ActionType, DetailType, DetailName)
+VALUES
+(1, 1, "Breakfast"),
+(1, 2, "Lunch"),
+(1, 3, "Dinner"),
+(1, 4, "Midnight Snack"),
+(1, 5, "Beverage"),
+(1, 6, "Snack"),
+(1, 7, "Clothes"),
+(1, 8, "Transportation"),
+(1, 9, "Books"),
+(1, 10, "Entertainment"),
+(2, 1, "Salary"),
+(2, 2, "Present"),
+(2, 3, "Other");
+
 -- Create Table if not exists ActionType (
 --     Type int not null primary key,
 --     TypeName varchar(20) not null unique

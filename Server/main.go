@@ -17,7 +17,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	log.Println("Starting Server...")
-	log.Fatal(http.ListenAndServe(":80", server.Router))
+	log.Fatal(http.ListenAndServe(":5000", server.Router))
 }
 
 // func Login(w http.ResponseWriter, r *http.Request) {
