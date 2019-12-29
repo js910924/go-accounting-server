@@ -1,6 +1,7 @@
 {{ template "header" }}
 
-    <h1 class="text-center">UserID: {{ .UserID }}</h1>
+    {{ $userId := .UserID }}
+    <h1 class="text-center">UserID: {{ $userId }}</h1>
     <div class="container">
         <table class="table">
             <thead class="thead-dark">
@@ -11,6 +12,8 @@
                     <th scope="col">Money</th>
                     <th scope="col">Description</th>
                     <th scope="col">Create Time</th>
+                    <th scope="col">Edit</th>
+                    <th scope="col">Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,6 +25,12 @@
                     <td>{{ $element.Money }}</td>
                     <td>{{ $element.Description }}</td>
                     <td>{{ printf "%s" $element.CreateTime }}</td>
+                    <td><form action="/Users/{{ $userId }}/AllData/{{ $element.LogId }}" method="GET">
+                        <button type="submit" class="btn btn-success">Edit</button>
+                    </form></td>
+                    <td><form action="#" method="GET">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form></td>
                 </tr>
                 {{ end }}
             </tbody>

@@ -17,8 +17,8 @@ Create Table if not exists Action (
     PRIMARY KEY (ActionType, DetailType)
 );
 
-
 Create Table if not exists Log (
+    LogId int not null auto_increment primary key,
     UserId int not null,
     ActionType int not null,
     DetailType int not null,

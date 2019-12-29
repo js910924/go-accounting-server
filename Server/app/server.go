@@ -23,7 +23,12 @@ type Server struct {
 func (s *Server) Init() {
 	log.SetFlags(log.Lshortfile)
 	// import templates
-	allTemplates := []string{"index", "login", "register", "user", "allData", "income", "outlay", "allUsers", "partials/header", "partials/footer"}
+	allTemplates := []string{
+		"index", "login", "register",
+		"user", "allData", "income",
+		"outlay", "allUsers", "editLog",
+		"partials/header", "partials/footer",
+	}
 	for i := range allTemplates {
 		allTemplates[i] = "./template/" + allTemplates[i] + ".html"
 	}
@@ -53,11 +58,14 @@ func (s *Server) setRoutes() {
 	user.HandleFunc("/{id}/Outlay", s.createAction()).Methods("POST")
 	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
 	user.HandleFunc("/{id}/Income", s.createAction()).Methods("POST")
+	user.HandleFunc("/{id}/AllData/{LogId}", s.editLog()).Methods("GET")
+	// user.HandleFunc("/{id}/AllData/{LogId}", s.updateLog()).Methods("POST")
+	// user.HandleFunc("/{id}/AllData/{LogId}", s.deleteLog()).Methods("POST")
 }
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {
 	var err error
-	dataSourceName := fmt.Sprintf("%s:%s@tcp(172.20.0.2:3306)/%s", userName, password, dbName)
+	dataSourceName := fmt.Sprintf("%s:%s@/%s", userName, password, dbName)
 	s.DB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")

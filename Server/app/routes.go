@@ -7,6 +7,7 @@ import (
 	"server/middleware"
 	"server/models"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -100,7 +101,7 @@ func (s *Server) logOut() http.HandlerFunc {
 		// Clear Cookie
 		if c.String() != "" {
 			c.Value = ""
-			// c.Expires = time.Unix(0, 0)
+			c.Expires = time.Now().AddDate(1, 0 ,0)
 			c.MaxAge = -1
 			c.HttpOnly = true
 			http.SetCookie(w, c)
@@ -277,7 +278,7 @@ func (s *Server) showAllData() http.HandlerFunc {
 			var data models.Data
 			var allData []models.Data = []models.Data{}
 			for row.Next() {
-				row.Scan(&data.UserId, &data.ActionType, &data.DetailType, &data.Money, &data.Description, &data.CreateTime)
+				row.Scan(&data.LogId, &data.UserId, &data.ActionType, &data.DetailType, &data.Money, &data.Description, &data.CreateTime)
 				allData = append(allData, data)
 			}
 
@@ -337,6 +338,69 @@ func (s *Server) createAction() http.HandlerFunc {
 
 		log.Println("[Success]", result, "Data:", data)
 		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+	}
+}
+
+func (s *Server) editLog() http.HandlerFunc {
+	tmplName := "editLog"
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := mux.Vars(r)["id"]
+		logID := mux.Vars(r)["LogId"]
+		// id, err := strconv.Atoi(userID)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		logId, err := strconv.Atoi(logID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c, err := r.Cookie("user")
+		if err != nil {
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
+		}
+
+		if c.Value == userID {
+			query := "SELECT * FROM Action WHERE ActionType=1 ORDER BY DetailType"
+			row, err := s.DB.Query(query)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			allOutlay := []models.Action{}
+			var action models.Action
+			for row.Next() {
+				row.Scan(&action.ActionType, &action.DetailType, &action.DetailName)
+				allOutlay = append(allOutlay, action)
+			}
+
+			query = fmt.Sprintf("SELECT * FROM log WHERE LogId=%d;", logId)
+			log.Println("[Query]", query)
+			row, err = s.DB.Query(query)
+			if err != nil {
+				log.Println(err)
+				http.Redirect(w, r, r.FormValue("redir"), 302)
+				return
+			}
+
+			var data models.Data
+			for row.Next() {
+				row.Scan(&data.LogId, &data.UserId, &data.ActionType, &data.DetailType, &data.Money, &data.Description, &data.CreateTime)
+			}
+
+			packet := models.Packet {
+				UserID: userID,
+				Data: allOutlay,
+				Data2: data,
+			}
+			
+			// fmt.Fprintln(w, packet.UserID, packet.Data, packet.Data2)
+			middleware.RenderTemplate(s.Templates, w, tmplName, packet)
+		} else {
+			http.Redirect(w, r, "/Users/"+c.Value+"/AllData", http.StatusFound)
+		}
 	}
 }
 
