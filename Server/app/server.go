@@ -48,6 +48,7 @@ func (s *Server) setRoutes() {
 	s.Router.HandleFunc("/Login", s.login()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
 	s.Router.HandleFunc("/Logout", s.logOut()).Methods("GET")
+	s.Router.HandleFunc("/PageNotFound", s.pageNotFound()).Methods("GET")
 
 	user := s.Router.PathPrefix("/Users").Subrouter().StrictSlash(true)
 	user.HandleFunc("", s.showAllUsers()).Methods("GET")
@@ -58,14 +59,15 @@ func (s *Server) setRoutes() {
 	user.HandleFunc("/{id}/Outlay", s.createAction()).Methods("POST")
 	user.HandleFunc("/{id}/Income", s.showIncome()).Methods("GET")
 	user.HandleFunc("/{id}/Income", s.createAction()).Methods("POST")
-	user.HandleFunc("/{id}/AllData/{LogId}", s.editLog()).Methods("GET")
-	// user.HandleFunc("/{id}/AllData/{LogId}", s.updateLog()).Methods("POST")
-	// user.HandleFunc("/{id}/AllData/{LogId}", s.deleteLog()).Methods("POST")
+	user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.editLog()).Methods("GET")
+	user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.editLog()).Methods("POST")
+	// user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.updateLog()).Methods("PUT")
+	// user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.deleteLog()).Methods("DELETE")
 }
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {
 	var err error
-	dataSourceName := fmt.Sprintf("%s:%s@/%s", userName, password, dbName)
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(172.20.0.2)/%s", userName, password, dbName)
 	s.DB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")

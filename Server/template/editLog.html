@@ -3,9 +3,10 @@
     <h1 class="text-center">Edit Outlay</h1>
 
     <div class="container">
-        <form action="/Users/{{ .UserID }}/AllData/{{ .Data2.LogId }}" method="UPDATE">
+        <form action="/Users/{{ .UserID }}/AllData/{{ .Data2.ActionType }}/{{ .Data2.LogId }}" method="POST">
             <div class="input-group">
-                <input type="text" name="actionType" value="1" hidden>
+                <input type="hidden" name="_method" value="PUT">
+                <input type="text" name="actionType" value="{{ .Data2.ActionType }}" hidden>
                 <input type="text" name="detailType" id="detailType" placeholder="Type No" readonly>
                 <input id="detailTypeName" placeholder="Choose Outlay Type" type="text" class="form-control" aria-label="Text input with dropdown button" readonly>
                 <div class="input-group-append">

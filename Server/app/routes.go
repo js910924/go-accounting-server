@@ -101,7 +101,7 @@ func (s *Server) logOut() http.HandlerFunc {
 		// Clear Cookie
 		if c.String() != "" {
 			c.Value = ""
-			c.Expires = time.Now().AddDate(1, 0 ,0)
+			c.Expires = time.Now().AddDate(1, 0, 0)
 			c.MaxAge = -1
 			c.HttpOnly = true
 			http.SetCookie(w, c)
@@ -345,13 +345,9 @@ func (s *Server) editLog() http.HandlerFunc {
 	tmplName := "editLog"
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := mux.Vars(r)["id"]
-		logID := mux.Vars(r)["LogId"]
-		// id, err := strconv.Atoi(userID)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-
-		logId, err := strconv.Atoi(logID)
+		logID := mux.Vars(r)["logId"]
+		actionType := mux.Vars(r)["actionType"]
+		id, err := strconv.Atoi(userID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -362,8 +358,19 @@ func (s *Server) editLog() http.HandlerFunc {
 			return
 		}
 
-		if c.Value == userID {
-			query := "SELECT * FROM Action WHERE ActionType=1 ORDER BY DetailType"
+		if c.Value != userID {
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+			return
+		}
+
+		switch r.Method {
+		case "GET":
+			logId, err := strconv.Atoi(logID)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			query := fmt.Sprintf("SELECT * FROM Action WHERE ActionType=%s ORDER BY DetailType", actionType)
 			row, err := s.DB.Query(query)
 			if err != nil {
 				log.Fatal(err)
@@ -376,7 +383,7 @@ func (s *Server) editLog() http.HandlerFunc {
 				allOutlay = append(allOutlay, action)
 			}
 
-			query = fmt.Sprintf("SELECT * FROM log WHERE LogId=%d;", logId)
+			query = fmt.Sprintf("SELECT * FROM Log WHERE LogId=%d AND UserId=%d;", logId, id)
 			log.Println("[Query]", query)
 			row, err = s.DB.Query(query)
 			if err != nil {
@@ -390,17 +397,151 @@ func (s *Server) editLog() http.HandlerFunc {
 				row.Scan(&data.LogId, &data.UserId, &data.ActionType, &data.DetailType, &data.Money, &data.Description, &data.CreateTime)
 			}
 
-			packet := models.Packet {
-				UserID: userID,
-				Data: allOutlay,
-				Data2: data,
+			if data.LogId == 0 {
+				http.Redirect(w, r, "/PageNotFound", http.StatusFound)
+				return
 			}
-			
+
+			packet := models.Packet{
+				UserID: userID,
+				Data:   allOutlay,
+				Data2:  data,
+			}
+
 			// fmt.Fprintln(w, packet.UserID, packet.Data, packet.Data2)
 			middleware.RenderTemplate(s.Templates, w, tmplName, packet)
-		} else {
-			http.Redirect(w, r, "/Users/"+c.Value+"/AllData", http.StatusFound)
+		case "POST":
+			if r.PostFormValue("_method") == "PUT" {
+				actionType, err := strconv.Atoi(r.FormValue("actionType"))
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
+				detailType, err := strconv.Atoi(r.FormValue("detailType"))
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
+				money, err := strconv.Atoi(r.FormValue("money"))
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
+				var data models.Data = models.Data{
+					UserId:      id,
+					ActionType:  actionType,
+					DetailType:  detailType,
+					Money:       money,
+					Description: r.FormValue("description"),
+				}
+
+				query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, logID)
+				log.Println("[Query]", query)
+				row, err := s.DB.Query(query)
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
+				var result string
+				for row.Next() {
+					row.Scan(&result)
+				}
+
+				log.Println("[Success]", result, "Data:", data)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			} else if r.PostFormValue("_method") == "DELETE" {
+				query := fmt.Sprintf("DELETE FROM Log WHERE LogId='%s';", logID)
+				log.Println("[Query]", query)
+				row, err := s.DB.Query(query)
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
+				var result string
+				for row.Next() {
+					row.Scan(&result)
+				}
+
+				log.Println("[Success]", result)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			}
 		}
+	}
+}
+
+func (s *Server) updateLog() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := mux.Vars(r)["id"]
+		logID := mux.Vars(r)["logId"]
+		id, err := strconv.Atoi(userID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		actionType, err := strconv.Atoi(r.FormValue("actionType"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		detailType, err := strconv.Atoi(r.FormValue("detailType"))
+		if err != nil {
+			log.Fatalln("[Fail]", err)
+		}
+
+		money, err := strconv.Atoi(r.FormValue("money"))
+		if err != nil {
+			log.Fatalln("[Fail]", err)
+		}
+
+		var data models.Data = models.Data{
+			UserId:      id,
+			ActionType:  actionType,
+			DetailType:  detailType,
+			Money:       money,
+			Description: r.FormValue("description"),
+		}
+
+		query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, logID)
+		log.Println("[Query]", query)
+		row, err := s.DB.Query(query)
+		if err != nil {
+			log.Fatalln("[Fail]", err)
+		}
+
+		var result string
+		for row.Next() {
+			row.Scan(&result)
+		}
+
+		log.Println("[Success]", result, "Data:", data)
+		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+	}
+}
+
+func (s *Server) deleteLog() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := mux.Vars(r)["id"]
+		logID := mux.Vars(r)["logId"]
+		query := fmt.Sprintf("DELETE FROM Log WHERE LogId='%s';", logID)
+		log.Println("[Query]", query)
+		row, err := s.DB.Query(query)
+		if err != nil {
+			log.Fatalln("[Fail]", err)
+		}
+
+		var result string
+		for row.Next() {
+			row.Scan(&result)
+		}
+
+		log.Println("[Success]", result)
+		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+	}
+}
+
+func (s *Server) pageNotFound() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Page Not Found!")
 	}
 }
 
