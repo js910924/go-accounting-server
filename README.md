@@ -11,10 +11,11 @@ $ curl http://localhost:5000
 ```	
 
 ## Todo
-- [ ] Add delete and edit log feature
 - [ ] Modify Cookie format
 - [ ] More Detail Search
 	> Ex. Show data only in Nov.
+- [x] Let user select Date (2020.01.08)
+- [x] Add delete and edit log feature (2019.12.30)
 - [x] Rebuild Project (2019.12.27)
 - [x] Use maxAge to delete cookie (2019.12.1)
 - [x] Add db connect error handling while os is linux (2109.12.1)

@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os/exec"
 	"runtime"
 	"strings"
 	"time"
@@ -61,8 +60,6 @@ func (s *Server) setRoutes() {
 	user.HandleFunc("/{id}/Income", s.createAction()).Methods("POST")
 	user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.editLog()).Methods("GET")
 	user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.editLog()).Methods("POST")
-	// user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.updateLog()).Methods("PUT")
-	// user.HandleFunc("/{id}/AllData/{actionType}/{logId}", s.deleteLog()).Methods("DELETE")
 }
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {
@@ -79,19 +76,20 @@ func (s *Server) connectDB(driverName string, userName string, password string, 
 
 		switch true {
 		case strings.Contains(err.Error(), "connection refused"):
-			log.Printf("[Handling] Trying to start mysql server... On %s\n", runtime.GOOS)
-			var cmd *exec.Cmd
-			switch runtime.GOOS {
-			case "darwin":
-				cmd = exec.Command("mysql.server", "start")
+			log.Printf("[Handling] Wait mysql server started... On %s\n", runtime.GOOS)
+			// log.Printf("[Handling] Trying to start mysql server... On %s\n", runtime.GOOS)
+			// var cmd *exec.Cmd
+			// switch runtime.GOOS {
+			// case "darwin":
+			// 	cmd = exec.Command("mysql.server", "start")
 
-			case "linux":
-				cmd = exec.Command("service", "mysql", "start")
-			}
+			// case "linux":
+			// 	cmd = exec.Command("service", "mysql", "start")
+			// }
 
-			if err := cmd.Run(); err != nil {
-				log.Println("[Fail] Restart fail, wait 3 sec..., Erro:", err)
-			}
+			// if err := cmd.Run(); err != nil {
+			// 	log.Println("[Fail] Restart fail, wait 3 sec..., Erro:", err)
+			// }
 
 			<-time.After(3 * time.Second) // Wait 3 seconds
 			s.connectDB(driverName, userName, password, dbName)

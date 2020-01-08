@@ -316,15 +316,21 @@ func (s *Server) createAction() http.HandlerFunc {
 			log.Fatalln("[Fail]", err)
 		}
 
+		createTime, err := time.Parse("2006-01-02", r.FormValue("date"))
+		if err != nil {
+			log.Fatalln("[Fail]", err)
+		}
+
 		var data models.Data = models.Data{
 			UserId:      id,
 			ActionType:  actionType,
 			DetailType:  detailType,
 			Money:       money,
 			Description: r.FormValue("description"),
+			CreateTime: []byte(createTime.String()),
 		}
 
-		query := fmt.Sprintf("INSERT INTO Log (UserId, ActionType, DetailType, Money, Description) values ('%d', '%d', '%d', '%d', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description)
+		query := fmt.Sprintf("INSERT INTO Log (UserId, ActionType, DetailType, Money, Description, CreateTime) values ('%d', '%d', '%d', '%d', '%s', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime)
 		log.Println("[Query]", query)
 		row, err := s.DB.Query(query)
 		if err != nil {
@@ -427,15 +433,21 @@ func (s *Server) editLog() http.HandlerFunc {
 					log.Fatalln("[Fail]", err)
 				}
 
+				createTime, err := time.Parse("2006-01-02", r.FormValue("date"))
+				if err != nil {
+					log.Fatalln("[Fail]", err)
+				}
+
 				var data models.Data = models.Data{
 					UserId:      id,
 					ActionType:  actionType,
 					DetailType:  detailType,
 					Money:       money,
 					Description: r.FormValue("description"),
+					CreateTime: []byte(createTime.String()),
 				}
 
-				query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, logID)
+				query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s', CreateTime='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime, logID)
 				log.Println("[Query]", query)
 				row, err := s.DB.Query(query)
 				if err != nil {
@@ -466,76 +478,6 @@ func (s *Server) editLog() http.HandlerFunc {
 				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
 			}
 		}
-	}
-}
-
-func (s *Server) updateLog() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		userID := mux.Vars(r)["id"]
-		logID := mux.Vars(r)["logId"]
-		id, err := strconv.Atoi(userID)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		actionType, err := strconv.Atoi(r.FormValue("actionType"))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		detailType, err := strconv.Atoi(r.FormValue("detailType"))
-		if err != nil {
-			log.Fatalln("[Fail]", err)
-		}
-
-		money, err := strconv.Atoi(r.FormValue("money"))
-		if err != nil {
-			log.Fatalln("[Fail]", err)
-		}
-
-		var data models.Data = models.Data{
-			UserId:      id,
-			ActionType:  actionType,
-			DetailType:  detailType,
-			Money:       money,
-			Description: r.FormValue("description"),
-		}
-
-		query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, logID)
-		log.Println("[Query]", query)
-		row, err := s.DB.Query(query)
-		if err != nil {
-			log.Fatalln("[Fail]", err)
-		}
-
-		var result string
-		for row.Next() {
-			row.Scan(&result)
-		}
-
-		log.Println("[Success]", result, "Data:", data)
-		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
-	}
-}
-
-func (s *Server) deleteLog() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		userID := mux.Vars(r)["id"]
-		logID := mux.Vars(r)["logId"]
-		query := fmt.Sprintf("DELETE FROM Log WHERE LogId='%s';", logID)
-		log.Println("[Query]", query)
-		row, err := s.DB.Query(query)
-		if err != nil {
-			log.Fatalln("[Fail]", err)
-		}
-
-		var result string
-		for row.Next() {
-			row.Scan(&result)
-		}
-
-		log.Println("[Success]", result)
-		http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
 	}
 }
 

@@ -24,7 +24,7 @@ Create Table if not exists Log (
     DetailType int not null,
     Money int not null,
     Description varchar(20),
-    CreateTime timestamp default current_timestamp
+    CreateTime timestamp
 );
 
 INSERT INTO Action (ActionType, DetailType, DetailName)

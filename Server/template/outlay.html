@@ -29,6 +29,17 @@
                 </div>
             </div>
             <div class="input-group">
+                <input id="date" name="date" type="date" class="form-control">
+                <script>
+                    window.onload = currentTime;
+                    function currentTime() {
+                        var dt = new Date();
+                        dt = new Date(dt.getTime() + 8*3600*1000);
+                        document.getElementById("date").value = dt.toISOString().slice(0, 10);
+                    }
+                </script>
+            </div>
+            <div class="input-group">
                 <div class="input-group-prepend">
                     <span class="input-group-text">Description</span>
                 </div>
