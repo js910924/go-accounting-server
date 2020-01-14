@@ -14,6 +14,8 @@ $ curl http://localhost:5000
 - [ ] Modify Cookie format
 - [ ] More Detail Search
 	> Ex. Show data only in Nov.
+- [x] Solved MySQL timestamp to Golang time.Time problem
+	> [Link](https://www.jianshu.com/p/3f7fc9093db4)
 - [x] Let user select Date (2020.01.08)
 - [x] Add delete and edit log feature (2019.12.30)
 - [x] Rebuild Project (2019.12.27)

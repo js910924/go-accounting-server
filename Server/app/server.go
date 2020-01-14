@@ -46,13 +46,14 @@ func (s *Server) setRoutes() {
 	s.Router.HandleFunc("/Register", s.signUp()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.login()).Methods("GET")
 	s.Router.HandleFunc("/Login", s.checkLogin()).Methods("POST")
-	s.Router.HandleFunc("/Logout", s.logOut()).Methods("GET")
+	s.Router.HandleFunc("/Logout", s.logout()).Methods("GET")
 	s.Router.HandleFunc("/PageNotFound", s.pageNotFound()).Methods("GET")
 
 	user := s.Router.PathPrefix("/Users").Subrouter().StrictSlash(true)
 	user.HandleFunc("", s.showAllUsers()).Methods("GET")
 	user.HandleFunc("", s.createUser()).Methods("POST")
 	user.HandleFunc("/{id}", s.showUser()).Methods("GET")
+	user.HandleFunc("/{id}", s.deleteUser()).Methods("POST")
 	user.HandleFunc("/{id}/AllData", s.showAllData()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.showOutlay()).Methods("GET")
 	user.HandleFunc("/{id}/Outlay", s.createAction()).Methods("POST")
@@ -64,7 +65,7 @@ func (s *Server) setRoutes() {
 
 func (s *Server) connectDB(driverName string, userName string, password string, dbName string) {
 	var err error
-	dataSourceName := fmt.Sprintf("%s:%s@tcp(172.20.0.2)/%s", userName, password, dbName)
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(172.20.0.2:3306)/%s?parseTime=true", userName, password, dbName)
 	s.DB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("[Fail] Open DB fail")

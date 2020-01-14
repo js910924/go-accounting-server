@@ -91,22 +91,19 @@ func (s *Server) login() http.HandlerFunc {
 	}
 }
 
-func (s *Server) logOut() http.HandlerFunc {
+func (s *Server) logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie("user")
 		if err != nil {
-			log.Fatal(err)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
 		}
 
 		// Clear Cookie
-		if c.String() != "" {
-			c.Value = ""
-			c.Expires = time.Now().AddDate(1, 0, 0)
-			c.MaxAge = -1
-			c.HttpOnly = true
-			http.SetCookie(w, c)
-		}
-
+		c.Expires = time.Now().AddDate(1, 0, 0)
+		c.MaxAge = -1
+		c.HttpOnly = true
+		http.SetCookie(w, c)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
@@ -128,19 +125,27 @@ func (s *Server) showUser() http.HandlerFunc {
 		}
 
 		// Search database
-		query := fmt.Sprintf("SELECT * FROM User WHERE UId = %s;", userID)
+		query := fmt.Sprintf(`SELECT * FROM User WHERE UId='%s';`, userID)
 		row, err := s.DB.Query(query)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
 		}
 
 		user := models.User{}
 		for row.Next() {
 			if err := row.Scan(&user.UId, &user.Name, &user.Account, &user.Password, &user.CreateTime); err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				http.Redirect(w, r, "/", http.StatusFound)
+				return
 			}
 		}
 
+		if user.UId == 0 {
+			http.Redirect(w, r, "/Logout", http.StatusFound)
+			return
+		}
 		middleware.RenderTemplate(s.Templates, w, "user", user)
 	}
 }
@@ -156,13 +161,15 @@ func (s *Server) checkLogin() http.HandlerFunc {
 
 		row, err := s.DB.Query(query)
 		if err != nil {
-			log.Fatal(err)
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
 		}
 
 		var user models.User
 		for row.Next() {
 			if err := row.Scan(&user.UId, &user.Name, &user.Account, &user.Password, &user.CreateTime); err != nil {
-				log.Fatal(err)
+				http.Redirect(w, r, "/Login", http.StatusFound)
+				return
 			}
 		}
 
@@ -172,6 +179,8 @@ func (s *Server) checkLogin() http.HandlerFunc {
 			c := &http.Cookie{
 				Name:  "user",
 				Value: id,
+				Expires: time.Now().Add(24 * time.Hour),
+				HttpOnly: true,
 			}
 
 			http.SetCookie(w, c)
@@ -182,6 +191,60 @@ func (s *Server) checkLogin() http.HandlerFunc {
 		log.Printf("[Warning] No Such User!!!")
 		log.Printf("[User] Account: %s, Password: %s\n", account, password)
 		http.Redirect(w, r, "/Login", http.StatusFound)
+	}
+}
+
+func (s *Server) deleteUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("user")
+		if err != nil {
+			http.Redirect(w, r, "/Login", http.StatusFound)
+			return
+		}
+
+		if c.String() == "" {
+			c.Expires = time.Now().AddDate(1, 0, 0)
+			c.MaxAge = -1
+			c.HttpOnly = true
+			http.SetCookie(w, c)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		userID := mux.Vars(r)["id"]
+		if c.Value != userID {
+			http.Redirect(w, r, "/Users/"+c.Value, http.StatusFound)
+			return
+		}
+
+		query := fmt.Sprintf(`DELETE FROM User WHERE UId='%s';`, userID)
+		row, err := s.DB.Query(query)
+		if err != nil {
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
+		}
+		
+		var result string
+		for row.Next() {
+			row.Scan(&result)
+		}
+		
+		log.Println("[Success]", query, result)
+		
+		query = fmt.Sprintf(`DELETE FROM Log WHERE UserId='%s';`, userID)
+		row, err = s.DB.Query(query)
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
+		}
+
+		for row.Next() {
+			row.Scan(&result)
+		}
+
+		log.Println("[Success]", query, result)
+		http.Redirect(w, r, "/Logout", http.StatusFound)
 	}
 }
 
@@ -202,7 +265,8 @@ func (s *Server) showIncome() http.HandlerFunc {
 		query := "SELECT * FROM Action WHERE ActionType=2 ORDER BY DetailType"
 		row, err := s.DB.Query(query)
 		if err != nil {
-			log.Fatal(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		allIncome := []models.Action{}
@@ -238,7 +302,8 @@ func (s *Server) showOutlay() http.HandlerFunc {
 		query := "SELECT * FROM Action WHERE ActionType=1 ORDER BY DetailType"
 		row, err := s.DB.Query(query)
 		if err != nil {
-			log.Fatal(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		allOutlay := []models.Action{}
@@ -272,7 +337,8 @@ func (s *Server) showAllData() http.HandlerFunc {
 			query := fmt.Sprintf("SELECT * FROM Log WHERE UserId=%s", userID)
 			row, err := s.DB.Query(query)
 			if err != nil {
-				log.Fatal(err)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+				return
 			}
 
 			var data models.Data
@@ -299,26 +365,36 @@ func (s *Server) createAction() http.HandlerFunc {
 		userID := mux.Vars(r)["id"]
 		actionType, err := strconv.Atoi(r.FormValue("actionType"))
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 		id, err := strconv.Atoi(userID)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		detailType, err := strconv.Atoi(r.FormValue("detailType"))
 		if err != nil {
-			log.Fatalln("[Fail]", err)
+			log.Println("[Fail]", err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		money, err := strconv.Atoi(r.FormValue("money"))
 		if err != nil {
-			log.Fatalln("[Fail]", err)
+			log.Println("[Fail]", err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		createTime, err := time.Parse("2006-01-02", r.FormValue("date"))
 		if err != nil {
-			log.Fatalln("[Fail]", err)
+			log.Println("[Fail]", err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		var data models.Data = models.Data{
@@ -327,14 +403,16 @@ func (s *Server) createAction() http.HandlerFunc {
 			DetailType:  detailType,
 			Money:       money,
 			Description: r.FormValue("description"),
-			CreateTime: []byte(createTime.String()),
+			CreateTime: createTime,
 		}
 
-		query := fmt.Sprintf("INSERT INTO Log (UserId, ActionType, DetailType, Money, Description, CreateTime) values ('%d', '%d', '%d', '%d', '%s', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime)
+		query := fmt.Sprintf("INSERT INTO Log (UserId, ActionType, DetailType, Money, Description, CreateTime) values ('%d', '%d', '%d', '%d', '%s', '%s');", data.UserId, data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime.Format("2006-01-02"))
 		log.Println("[Query]", query)
 		row, err := s.DB.Query(query)
 		if err != nil {
-			log.Fatalln("[Fail]", err)
+			log.Println("[Fail]", err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		var result string
@@ -355,7 +433,9 @@ func (s *Server) editLog() http.HandlerFunc {
 		actionType := mux.Vars(r)["actionType"]
 		id, err := strconv.Atoi(userID)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+			return
 		}
 
 		c, err := r.Cookie("user")
@@ -373,13 +453,17 @@ func (s *Server) editLog() http.HandlerFunc {
 		case "GET":
 			logId, err := strconv.Atoi(logID)
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+				return
 			}
 
 			query := fmt.Sprintf("SELECT * FROM Action WHERE ActionType=%s ORDER BY DetailType", actionType)
 			row, err := s.DB.Query(query)
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+				return
 			}
 
 			allOutlay := []models.Action{}
@@ -404,7 +488,7 @@ func (s *Server) editLog() http.HandlerFunc {
 			}
 
 			if data.LogId == 0 {
-				http.Redirect(w, r, "/PageNotFound", http.StatusFound)
+				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
 				return
 			}
 
@@ -420,22 +504,30 @@ func (s *Server) editLog() http.HandlerFunc {
 			if r.PostFormValue("_method") == "PUT" {
 				actionType, err := strconv.Atoi(r.FormValue("actionType"))
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				detailType, err := strconv.Atoi(r.FormValue("detailType"))
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				money, err := strconv.Atoi(r.FormValue("money"))
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				createTime, err := time.Parse("2006-01-02", r.FormValue("date"))
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				var data models.Data = models.Data{
@@ -444,14 +536,16 @@ func (s *Server) editLog() http.HandlerFunc {
 					DetailType:  detailType,
 					Money:       money,
 					Description: r.FormValue("description"),
-					CreateTime: []byte(createTime.String()),
+					CreateTime: createTime,
 				}
 
-				query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s', CreateTime='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime, logID)
+				query := fmt.Sprintf("UPDATE Log SET ActionType='%d', DetailType='%d', Money='%d', Description='%s', CreateTime='%s' WHERE LogId='%s';", data.ActionType, data.DetailType, data.Money, data.Description, data.CreateTime.Format("2006-01-02"), logID)
 				log.Println("[Query]", query)
 				row, err := s.DB.Query(query)
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				var result string
@@ -460,13 +554,15 @@ func (s *Server) editLog() http.HandlerFunc {
 				}
 
 				log.Println("[Success]", result, "Data:", data)
-				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+				http.Redirect(w, r, "/Users/"+userID+"/AllData", http.StatusFound)
 			} else if r.PostFormValue("_method") == "DELETE" {
 				query := fmt.Sprintf("DELETE FROM Log WHERE LogId='%s';", logID)
 				log.Println("[Query]", query)
 				row, err := s.DB.Query(query)
 				if err != nil {
-					log.Fatalln("[Fail]", err)
+					log.Println("[Fail]", err)
+					http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+					return
 				}
 
 				var result string
@@ -475,7 +571,7 @@ func (s *Server) editLog() http.HandlerFunc {
 				}
 
 				log.Println("[Success]", result)
-				http.Redirect(w, r, "/Users/"+userID, http.StatusFound)
+				http.Redirect(w, r, "/Users/"+userID+"/AllData", http.StatusFound)
 			}
 		}
 	}
