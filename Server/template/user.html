@@ -9,7 +9,6 @@
             <div class="card-body text-center">
                 <h5 class="card-title">{{ .Name }}</h5>
                 <p class="card-text">Account: {{ .Account }}</p>
-                <p class="card-text">Password: {{ .Password }}</p>
                 <form action="/Users/{{ .UId }}" method="POST">
                     <button class="btn btn-danger">Delete Account</button>
                 </form>
